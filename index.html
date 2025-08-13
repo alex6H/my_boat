@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Déplace le feu</title>
+    <title>Move the Fire</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!--<script src="https://unpkg.com/maplibre-gl@2.1.9/dist/maplibre-gl.js"></script>
@@ -32,8 +32,8 @@
 </head>
 <body>
 	<div id="search">
-        <input type="text" id="address-input" placeholder="Entrez une adresse">
-        <button id="search-button">Rechercher</button>
+        <input type="text" id="address-input" placeholder="Enter an address">
+        <button id="search-button">Search</button>
     </div>
     <div id="map"></div>
 	
@@ -48,17 +48,17 @@
 	 "
 	>
    <div style="
-    background: rgba(255, 255, 255, 0.9); /* léger transparent */
+    background: rgba(255, 255, 255, 0.9); /* slightly transparent */
     padding: 30px;
     border-radius: 12px;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
     text-align: center;
     max-width: 300px;
-    backdrop-filter: blur(6px); /* flou derrière */
+    backdrop-filter: blur(6px); /* blur behind */
 	"
    >
-    <h2 style="margin-bottom: 10px;">Bienvenue !</h2>
-    <p style="margin-bottom: 20px;">Déplace le fond de carte, la surface parcourue par le feu de Ribaute, Aude (source Copernicus <a href=https://forest-fire.emergency.copernicus.eu/applications/data-and-services>Burnt areas database</a>) restera centrée.</p>
+    <h2 style="margin-bottom: 10px;">Welcome!</h2>
+    <p style="margin-bottom: 20px;">Move the basemap, the area burned by the Ribaute, Aude fire (source Copernicus <a href=https://forest-fire.emergency.copernicus.eu/applications/data-and-services>Burnt areas database</a>) will stay centered.</p>
     <button onclick="closeModal()" style="
       padding: 10px 20px;
       background: #007BFF;
@@ -66,7 +66,7 @@
       border: none;
       border-radius: 5px;
       cursor: pointer;
-    ">Fermer</button>
+    ">Close</button>
   </div>
 </div>
 
@@ -81,31 +81,62 @@
 </script>
 	
 	<script>
-        // Initialiser la carte
-        const map = new maplibregl.Map({
-            container: 'map',
-            style: 'https://data.geopf.fr/annexes/ressources/vectorTiles/styles/PLAN.IGN/standard.json',
-            center: [2.76288858,43.04968014], // Centré sur le feu à sa position d'origine
-            zoom: 10,
-			attributionControl: ({
-            compact: false,
-            customAttribution: [
-                'Fond de carte : © <a href="https://geoservices.ign.fr/planign" target="_blank">IGN - Plan IGN</a>',
-                'Données surface parcourue : <a href="https://forest-fire.emergency.copernicus.eu/applications/data-and-services" target="_blank">Copernicus Burnt areas database</a>'
-            ]
-        })
+        // Initialize the map
+const map = new maplibregl.Map({
+    container: 'map',
+    style: {
+        version: 8,
+        sources: {
+            // Base OSM layer
+            osm: {
+                type: 'raster',
+                tiles: [
+                    'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
+                ],
+                tileSize: 256,
+                attribution:
+                    '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            },
+            // OpenSeaMap overlay
+            openseamap: {
+                type: 'raster',
+                tiles: [
+                    'https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png'
+                ],
+                tileSize: 256,
+                attribution:
+                    '© <a href="https://www.openseamap.org/">OpenSeaMap</a> contributors'
+            }
+        },
+        layers: [
+            {
+                id: 'osm-layer',
+                type: 'raster',
+                source: 'osm'
+            },
+            {
+                id: 'openseamap-layer',
+                type: 'raster',
+                source: 'openseamap'
+            }
+        ]
+    },
+    center: [2.76288858, 43.04968014],
+    zoom: 10
+});
+
         });
 
-        // Ajouter le contrôle de navigation
+        // Add navigation control
         map.addControl(new maplibregl.NavigationControl(), 'top-right');
 		
-		// Écouter le clic sur le bouton de recherche
+		// Listen for clicks on the search button
         document.getElementById('search-button').addEventListener('click', function() {
             const address = document.getElementById('address-input').value;
             searchAddress(address);
         });
 		
-		// Écouter la touche Entrée dans le champ de saisie
+		// Listen for Enter key in the input field
         document.getElementById('address-input').addEventListener('keypress', function(event) {
             if (event.key === 'Enter') {
                 const address = document.getElementById('address-input').value;
@@ -113,7 +144,7 @@
             }
         });
 
-        // Fonction pour rechercher une adresse avec l'API BAN
+        // Function to search for an address using the BAN API
         function searchAddress(address) {
             const url = `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(address)}`;
 
@@ -126,36 +157,36 @@
                         map.setCenter([lng, lat]);
                         map.setZoom(10);
                     } else {
-                        alert('Aucun résultat trouvé pour cette adresse.');
+                        alert('No results found for this address.');
                     }
                 })
                 .catch(error => {
-                    console.error('Erreur lors de la recherche de l\'adresse:', error);
+                    console.error('Error while searching for the address:', error);
                 });
         }
 
-        // Variable pour stocker les données GeoJSON originales
+        // Variable to store original GeoJSON data
         let originalGeoJSONData;
 		let originalGeoJSONData2;
 
-        // Charger le GeoJSON du polygone
+        // Load the polygon GeoJSON
         fetch('https://raw.githubusercontent.com/jeremieprudhomme/Deplace-le-feu/refs/heads/main/FDF.geojson')
             .then(response => {
                 if (!response.ok) {
-                    throw new Error(`Erreur HTTP! statut: ${response.status}`);
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 return response.json();
             })
             .then(data => {
                 originalGeoJSONData = data;
                 map.on('load', function() {
-                    // Ajouter la source GeoJSON
+                    // Add GeoJSON source
                     map.addSource('polygon', {
                         'type': 'geojson',
                         'data': originalGeoJSONData
                     });
 
-                    // Ajouter la couche pour le polygone
+                    // Add fill layer for the polygon
                     map.addLayer({
                         'id': 'polygon-layer',
                         'type': 'fill',
@@ -173,41 +204,41 @@
                         'source': 'polygon',
                         'layout': {},
                         'paint': {
-                            'line-color': '#FF0000', // Rouge
-                            'line-width': 1 // Épaisseur de la ligne
+                            'line-color': '#FF0000', // Red
+                            'line-width': 1 // Line thickness
                         }
                     });
                 });
             })
             .catch(error => {
-                console.error('Erreur lors du chargement du GeoJSON:', error);
+                console.error('Error loading the GeoJSON:', error);
             });
 
-        // Fonction pour déplacer le polygone au centre de la carte
+        // Function to move the polygon to the center of the map
         function movePolygonToCenter() {
             const center = map.getCenter();
 
-			// Calculer le centroïde du polygone en utilisant Turf.js
+			// Calculate the centroid of the polygon using Turf.js
             const centroid = turf.centroid(originalGeoJSONData);
 			
-			// Calculer le décalage pour centrer le polygone
+			// Calculate the offset to center the polygon
             const offset = {
                 lng: center.lng - centroid.geometry.coordinates[0],
                 lat: center.lat - centroid.geometry.coordinates[1]
             };
 
-            // Mettre à jour les coordonnées du polygone
+            // Update the polygon coordinates
             const updatedGeoJSONData = JSON.parse(JSON.stringify(originalGeoJSONData));
             updatedGeoJSONData.features[0].geometry.coordinates[0][0].forEach(coord => {
                 coord[0] += offset.lng;
                 coord[1] += offset.lat;
             });
 
-            // Mettre à jour la source de données
+            // Update the data source
             map.getSource('polygon').setData(updatedGeoJSONData);
         }
 
-        // Écouter les mouvements de la carte
+        // Listen for map movements
         map.on('move', movePolygonToCenter);
     </script>
 </body>
