@@ -82,49 +82,18 @@
 	
 	<script>
         // Initialize the map
-const map = new maplibregl.Map({
-    container: 'map',
-    style: {
-        version: 8,
-        sources: {
-            // Base OSM layer
-            osm: {
-                type: 'raster',
-                tiles: [
-                    'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
-                ],
-                tileSize: 256,
-                attribution:
-                    '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            },
-            // OpenSeaMap overlay
-            openseamap: {
-                type: 'raster',
-                tiles: [
-                    'https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png'
-                ],
-                tileSize: 256,
-                attribution:
-                    '© <a href="https://www.openseamap.org/">OpenSeaMap</a> contributors'
-            }
-        },
-        layers: [
-            {
-                id: 'osm-layer',
-                type: 'raster',
-                source: 'osm'
-            },
-            {
-                id: 'openseamap-layer',
-                type: 'raster',
-                source: 'openseamap'
-            }
-        ]
-    },
-    center: [2.76288858, 43.04968014],
-    zoom: 10
-});
-
+        const map = new maplibregl.Map({
+            container: 'map',
+            style: 'https://data.geopf.fr/annexes/ressources/vectorTiles/styles/PLAN.IGN/standard.json',
+            center: [2.76288858,43.04968014], // Centered on the fire at its original location
+            zoom: 10,
+			attributionControl: ({
+            compact: false,
+            customAttribution: [
+                'Basemap: © <a href="https://geoservices.ign.fr/planign" target="_blank">IGN - Plan IGN</a>',
+                'Burned area data: <a href="https://forest-fire.emergency.copernicus.eu/applications/data-and-services" target="_blank">Copernicus Burnt areas database</a>'
+            ]
+        })
         });
 
         // Add navigation control
